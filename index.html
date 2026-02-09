@@ -548,6 +548,7 @@
         let currentLang = 'frances';
         let currentMode = 'tabla';
         let flippedCards = new Set();
+        window.phonemeLang = 'frances'; // Idioma por defecto para fonemas
 
         function getData() {
             return currentLang === 'frances' ? vocabularioFrances : vocabularioItaliano;
@@ -616,9 +617,36 @@
         }
 
         function renderPhonemes() {
-            const fonemas = currentLang === 'frances' ? fonemasFrances : fonemasItaliano;
+            // Determinar qué idioma de fonemas mostrar
+            let fonemas, langCode, langName;
+            if (window.phonemeLang === 'italiano') {
+                fonemas = fonemasItaliano;
+                langCode = 'it-IT';
+                langName = 'Italiano';
+            } else {
+                fonemas = fonemasFrances;
+                langCode = 'fr-FR';
+                langName = 'Francés';
+            }
             
-            let html = '';
+            let html = `
+                <div style="margin-bottom: 30px; text-align: center;">
+                    <h2 style="color: #FF6B35; margin-bottom: 20px; font-size: 1.8rem;">
+                        Fonemas del ${langName}
+                    </h2>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="window.phonemeLang='frances'; renderPhonemes();" 
+                                style="padding: 12px 30px; border: 2px solid #00A8E8; background: ${window.phonemeLang === 'frances' ? '#00A8E8' : 'white'}; color: ${window.phonemeLang === 'frances' ? 'white' : '#00A8E8'}; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 1rem;">
+                            🇫🇷 Francés
+                        </button>
+                        <button onclick="window.phonemeLang='italiano'; renderPhonemes();" 
+                                style="padding: 12px 30px; border: 2px solid #00A8E8; background: ${window.phonemeLang === 'italiano' ? '#00A8E8' : 'white'}; color: ${window.phonemeLang === 'italiano' ? 'white' : '#00A8E8'}; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 1rem;">
+                            🇮🇹 Italiano
+                        </button>
+                    </div>
+                </div>
+            `;
+            
             for (const [categoria, items] of Object.entries(fonemas)) {
                 html += `
                     <div class="phoneme-section">
@@ -629,7 +657,7 @@
                                     <div class="phoneme-symbol">/${fonema.simbolo}/</div>
                                     <div class="phoneme-example">Ej: ${fonema.ejemplo}</div>
                                     <div class="phoneme-audio">
-                                        <button class="audio-btn" onclick="playAudio('${fonema.palabra}')">
+                                        <button class="audio-btn" onclick="playPhoneme('${fonema.palabra}', '${langCode}')">
                                             🔊
                                         </button>
                                     </div>
@@ -641,6 +669,14 @@
             }
             
             document.getElementById('phonemesView').innerHTML = html;
+        }
+        
+        function playPhoneme(palabra, lang) {
+            const utterance = new SpeechSynthesisUtterance(palabra);
+            utterance.lang = lang;
+            utterance.rate = 0.7;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
         }
 
         function toggleCard(num) {
@@ -656,7 +692,11 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             let data = getData();
             
-            if (currentLang === 'fonemas') {
+            // Verificar si estamos en la pestaña de fonemas
+            const activeTab = document.querySelector('.tab-btn.active');
+            const isFonemasTab = activeTab && activeTab.dataset.lang === 'fonemas';
+            
+            if (isFonemasTab) {
                 document.getElementById('tableView').classList.add('hidden');
                 document.getElementById('cardsView').classList.add('hidden');
                 document.getElementById('phonemesView').classList.remove('hidden');
@@ -694,7 +734,13 @@
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                currentLang = this.dataset.lang;
+                const newLang = this.dataset.lang;
+                
+                if (newLang !== 'fonemas') {
+                    currentLang = newLang;
+                    window.phonemeLang = newLang; // Sincronizar idioma de fonemas
+                }
+                
                 flippedCards.clear();
                 render();
             });
