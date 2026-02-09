@@ -53,10 +53,12 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
+            min-width: 120px;
             padding: 15px;
             border: none;
             background: #FFF5E4;
@@ -281,6 +283,65 @@
             color: white;
         }
 
+        /* Modo Fonemas */
+        .phonemes-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .phoneme-section {
+            margin-bottom: 40px;
+        }
+
+        .phoneme-section h2 {
+            color: #FF6B35;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #F7931E;
+            padding-bottom: 10px;
+        }
+
+        .phonemes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .phoneme-card {
+            background: #FFF9F0;
+            border: 2px solid #FFE5D4;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .phoneme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #FF6B35;
+        }
+
+        .phoneme-symbol {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+
+        .phoneme-example {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .phoneme-audio {
+            margin-top: 10px;
+        }
+
         .hidden {
             display: none;
         }
@@ -301,6 +362,10 @@
             .word-cell {
                 font-size: 1.1rem;
             }
+
+            .phonemes-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
         }
     </style>
 </head>
@@ -315,13 +380,14 @@
             <div class="tabs">
                 <button class="tab-btn active" data-lang="frances">🇫🇷 Francés</button>
                 <button class="tab-btn" data-lang="italiano">🇮🇹 Italiano</button>
+                <button class="tab-btn" data-lang="fonemas">🔊 Fonemas IPA</button>
             </div>
 
-            <div class="search-box">
+            <div id="searchContainer" class="search-box">
                 <input type="text" id="searchInput" placeholder="🔍 Buscar palabra o traducción...">
             </div>
 
-            <div class="mode-toggle">
+            <div id="modeContainer" class="mode-toggle">
                 <button class="mode-btn active" data-mode="tabla">📋 Tabla</button>
                 <button class="mode-btn" data-mode="tarjetas">🃏 Tarjetas</button>
             </div>
@@ -329,6 +395,7 @@
 
         <div id="tableView" class="table-container"></div>
         <div id="cardsView" class="cards-container hidden"></div>
+        <div id="phonemesView" class="phonemes-container hidden"></div>
     </div>
 
     <script>
@@ -355,48 +422,128 @@
             {num: 20, palabra: "au", pronunciacion: "o", traduccion: "al", mnemotecnica: "AL AUlla el lobo bajo la luna llena"},
             {num: 21, palabra: "pour", pronunciacion: "puʁ", traduccion: "para", mnemotecnica: "PARA el PObre URgía dinero urgente"},
             {num: 22, palabra: "pas", pronunciacion: "pa", traduccion: "no", mnemotecnica: "NO PASes por ese camino peligroso"},
-            {num: 23, palabra: "vous", pronunciacion: "vu", traduccion: "usted", mnemotecnica: "USTED VIO una VUlva en el museo de arte"},
-            {num: 24, palabra: "par", pronunciacion: "paʁ", traduccion: "por", mnemotecnica: "POR el PARque corre un PARasaurio"},
+            {num: 23, palabra: "vous", pronunciacion: "vu", traduccion: "usted", mnemotecnica: "USTED VIO una escena extraña"},
+            {num: 24, palabra: "par", pronunciacion: "paʁ", traduccion: "por", mnemotecnica: "POR el PARque corre un dinosaurio"},
             {num: 25, palabra: "sur", pronunciacion: "syʁ", traduccion: "sobre", mnemotecnica: "SOBRE el mURo SURge un girasol gigante"},
-            {num: 26, palabra: "faire", pronunciacion: "fɛʁ", traduccion: "hacer", mnemotecnica: "HACER una FERia es construir con HIERRO"},
-            {num: 27, palabra: "plus", pronunciacion: "plys", traduccion: "más", mnemotecnica: "MÁS PLUSvalía en el negocio de plumas"},
-            {num: 28, palabra: "dire", pronunciacion: "diʁ", traduccion: "decir", mnemotecnica: "DECIR DIREcto lo que piensas es valiente"},
-            {num: 29, palabra: "me", pronunciacion: "mə", traduccion: "me", mnemotecnica: "ME MEte miedo la medusa gigante"},
-            {num: 30, palabra: "on", pronunciacion: "ɔ̃", traduccion: "uno/se", mnemotecnica: "UNO ONdula como serpiente al bailar"},
+            {num: 26, palabra: "faire", pronunciacion: "fɛʁ", traduccion: "hacer", mnemotecnica: "HACER una FERia con HIERRO"},
+            {num: 27, palabra: "plus", pronunciacion: "plys", traduccion: "más", mnemotecnica: "MÁS PLUSvalía en el negocio"},
+            {num: 28, palabra: "dire", pronunciacion: "diʁ", traduccion: "decir", mnemotecnica: "DECIR DIREcto lo que piensas"},
+            {num: 29, palabra: "me", pronunciacion: "mə", traduccion: "me", mnemotecnica: "ME MEte miedo la medusa"},
+            {num: 30, palabra: "on", pronunciacion: "ɔ̃", traduccion: "uno/se", mnemotecnica: "UNO ONdula como serpiente"},
         ];
 
         const vocabularioItaliano = [
-            {num: 1, palabra: "il", pronunciacion: "il", traduccion: "el", mnemotecnica: "EL ILuminado monje brilla en la oscuridad"},
-            {num: 2, palabra: "di", pronunciacion: "di", traduccion: "de", mnemotecnica: "DE DIos viene la bendición divina"},
+            {num: 1, palabra: "il", pronunciacion: "il", traduccion: "el", mnemotecnica: "EL ILuminado monje brilla"},
+            {num: 2, palabra: "di", pronunciacion: "di", traduccion: "de", mnemotecnica: "DE DIos viene la bendición"},
             {num: 3, palabra: "e", pronunciacion: "e", traduccion: "y", mnemotecnica: "Y la letra E forma palabras"},
-            {num: 4, palabra: "la", pronunciacion: "la", traduccion: "la", mnemotecnica: "LA lámpara LA ilumina todo oscuro"},
-            {num: 5, palabra: "che", pronunciacion: "ke", traduccion: "que", mnemotecnica: "QUE CHEqueo tan extraño del médico"},
-            {num: 6, palabra: "è", pronunciacion: "ɛ", traduccion: "es/está", mnemotecnica: "ES Éste el momento de brillar"},
-            {num: 7, palabra: "un", pronunciacion: "un", traduccion: "un", mnemotecnica: "UN UNgüento mágico cura todo"},
-            {num: 8, palabra: "a", pronunciacion: "a", traduccion: "a", mnemotecnica: "A Ana le gusta la pizza italiana"},
-            {num: 9, palabra: "in", pronunciacion: "in", traduccion: "en", mnemotecnica: "EN el INfierno hace mucho calor"},
-            {num: 10, palabra: "per", pronunciacion: "per", traduccion: "para", mnemotecnica: "PARA el PERro hay comida especial"},
-            {num: 11, palabra: "non", pronunciacion: "non", traduccion: "no", mnemotecnica: "NO es NON sense lo que digo"},
-            {num: 12, palabra: "una", pronunciacion: "una", traduccion: "una", mnemotecnica: "UNA luna brillante UNe corazones"},
-            {num: 13, palabra: "si", pronunciacion: "si", traduccion: "sí/se", mnemotecnica: "SÍ, SE sienta en la silla roja"},
-            {num: 14, palabra: "come", pronunciacion: "kome", traduccion: "como", mnemotecnica: "COMO COMEr pasta todos los días"},
-            {num: 15, palabra: "io", pronunciacion: "io", traduccion: "yo", mnemotecnica: "YO voy solo al río frío"},
-            {num: 16, palabra: "ma", pronunciacion: "ma", traduccion: "pero", mnemotecnica: "PERO MAma cocina pizza rica"},
-            {num: 17, palabra: "con", pronunciacion: "kon", traduccion: "con", mnemotecnica: "CON el CONo del helado derretido"},
-            {num: 18, palabra: "sono", pronunciacion: "sono", traduccion: "soy/son", mnemotecnica: "SOY un SONámbulo que camina dormido"},
-            {num: 19, palabra: "mi", pronunciacion: "mi", traduccion: "me", mnemotecnica: "ME da MIedo la montaña alta"},
-            {num: 20, palabra: "da", pronunciacion: "da", traduccion: "de/desde", mnemotecnica: "DESDE que DA la una viene"},
-            {num: 21, palabra: "più", pronunciacion: "pju", traduccion: "más", mnemotecnica: "MÁS PIUmaje tiene el pájaro exótico"},
-            {num: 22, palabra: "lo", pronunciacion: "lo", traduccion: "lo", mnemotecnica: "LO LOco baila desnudo en la plaza"},
-            {num: 23, palabra: "questo", pronunciacion: "kʷesto", traduccion: "este", mnemotecnica: "ESTE QUESo apesta horriblemente mal"},
-            {num: 24, palabra: "ha", pronunciacion: "a", traduccion: "ha/tiene", mnemotecnica: "HA caído en el agujero profundo"},
-            {num: 25, palabra: "ti", pronunciacion: "ti", traduccion: "te", mnemotecnica: "TE toca el TIgrillo en el bosque"},
-            {num: 26, palabra: "se", pronunciacion: "se", traduccion: "si", mnemotecnica: "SI SE cae del árbol se rompe"},
-            {num: 27, palabra: "anche", pronunciacion: "aŋke", traduccion: "también", mnemotecnica: "TAMBIÉN el ANcho come mucho pan"},
-            {num: 28, palabra: "tu", pronunciacion: "tu", traduccion: "tú", mnemotecnica: "TÚ TUviste un sueño extraño anoche"},
-            {num: 29, palabra: "su", pronunciacion: "su", traduccion: "sobre", mnemotecnica: "SOBRE el SUelo hay sangre roja"},
+            {num: 4, palabra: "la", pronunciacion: "la", traduccion: "la", mnemotecnica: "LA lámpara ilumina todo"},
+            {num: 5, palabra: "che", pronunciacion: "ke", traduccion: "que", mnemotecnica: "QUE CHEqueo tan extraño"},
+            {num: 6, palabra: "è", pronunciacion: "ɛ", traduccion: "es/está", mnemotecnica: "ES Éste el momento"},
+            {num: 7, palabra: "un", pronunciacion: "un", traduccion: "un", mnemotecnica: "UN UNgüento mágico"},
+            {num: 8, palabra: "a", pronunciacion: "a", traduccion: "a", mnemotecnica: "A Ana le gusta la pizza"},
+            {num: 9, palabra: "in", pronunciacion: "in", traduccion: "en", mnemotecnica: "EN el INfierno hace calor"},
+            {num: 10, palabra: "per", pronunciacion: "per", traduccion: "para", mnemotecnica: "PARA el PERro hay comida"},
+            {num: 11, palabra: "non", pronunciacion: "non", traduccion: "no", mnemotecnica: "NO es NONsense esto"},
+            {num: 12, palabra: "una", pronunciacion: "una", traduccion: "una", mnemotecnica: "UNA luna brillante"},
+            {num: 13, palabra: "si", pronunciacion: "si", traduccion: "sí/se", mnemotecnica: "SÍ, SE sienta aquí"},
+            {num: 14, palabra: "come", pronunciacion: "kome", traduccion: "como", mnemotecnica: "COMO COMEr pasta"},
+            {num: 15, palabra: "io", pronunciacion: "io", traduccion: "yo", mnemotecnica: "YO voy solo al río"},
+            {num: 16, palabra: "ma", pronunciacion: "ma", traduccion: "pero", mnemotecnica: "PERO MAma cocina rico"},
+            {num: 17, palabra: "con", pronunciacion: "kon", traduccion: "con", mnemotecnica: "CON el CONo de helado"},
+            {num: 18, palabra: "sono", pronunciacion: "sono", traduccion: "soy/son", mnemotecnica: "SOY un SONámbulo"},
+            {num: 19, palabra: "mi", pronunciacion: "mi", traduccion: "me", mnemotecnica: "ME da MIedo la montaña"},
+            {num: 20, palabra: "da", pronunciacion: "da", traduccion: "de/desde", mnemotecnica: "DESDE que DA la una"},
+            {num: 21, palabra: "più", pronunciacion: "pju", traduccion: "más", mnemotecnica: "MÁS PIUmaje tiene"},
+            {num: 22, palabra: "lo", pronunciacion: "lo", traduccion: "lo", mnemotecnica: "LO LOco baila solo"},
+            {num: 23, palabra: "questo", pronunciacion: "kʷesto", traduccion: "este", mnemotecnica: "ESTE QUESo apesta"},
+            {num: 24, palabra: "ha", pronunciacion: "a", traduccion: "ha/tiene", mnemotecnica: "HA caído en el hoyo"},
+            {num: 25, palabra: "ti", pronunciacion: "ti", traduccion: "te", mnemotecnica: "TE toca el TIgre"},
+            {num: 26, palabra: "se", pronunciacion: "se", traduccion: "si", mnemotecnica: "SI SE cae se rompe"},
+            {num: 27, palabra: "anche", pronunciacion: "aŋke", traduccion: "también", mnemotecnica: "TAMBIÉN el ANcho come"},
+            {num: 28, palabra: "tu", pronunciacion: "tu", traduccion: "tú", mnemotecnica: "TÚ TUviste un sueño"},
+            {num: 29, palabra: "su", pronunciacion: "su", traduccion: "sobre", mnemotecnica: "SOBRE el SUelo hay sangre"},
             {num: 30, palabra: "ci", pronunciacion: "tʃi", traduccion: "nos/ahí", mnemotecnica: "AHÍ nos vemos en la CHImenea"},
         ];
+
+        const fonemasFrances = {
+            "Vocales": [
+                {simbolo: "a", ejemplo: "patte", palabra: "patte"},
+                {simbolo: "ɑ", ejemplo: "pâte", palabra: "pâte"},
+                {simbolo: "e", ejemplo: "thé", palabra: "thé"},
+                {simbolo: "ɛ", ejemplo: "père", palabra: "père"},
+                {simbolo: "ə", ejemplo: "le", palabra: "le"},
+                {simbolo: "i", ejemplo: "si", palabra: "si"},
+                {simbolo: "o", ejemplo: "beau", palabra: "beau"},
+                {simbolo: "ɔ", ejemplo: "porte", palabra: "porte"},
+                {simbolo: "u", ejemplo: "vous", palabra: "vous"},
+                {simbolo: "y", ejemplo: "tu", palabra: "tu"},
+                {simbolo: "œ", ejemplo: "peu", palabra: "peu"},
+                {simbolo: "ø", ejemplo: "feu", palabra: "feu"},
+            ],
+            "Vocales Nasales": [
+                {simbolo: "ɑ̃", ejemplo: "en, an", palabra: "enfant"},
+                {simbolo: "ɛ̃", ejemplo: "in, ain", palabra: "vin"},
+                {simbolo: "ɔ̃", ejemplo: "on", palabra: "bon"},
+                {simbolo: "œ̃", ejemplo: "un", palabra: "un"},
+            ],
+            "Consonantes": [
+                {simbolo: "p", ejemplo: "papa", palabra: "papa"},
+                {simbolo: "b", ejemplo: "bébé", palabra: "bébé"},
+                {simbolo: "t", ejemplo: "tête", palabra: "tête"},
+                {simbolo: "d", ejemplo: "dodo", palabra: "dodo"},
+                {simbolo: "k", ejemplo: "café", palabra: "café"},
+                {simbolo: "g", ejemplo: "gare", palabra: "gare"},
+                {simbolo: "f", ejemplo: "feu", palabra: "feu"},
+                {simbolo: "v", ejemplo: "vie", palabra: "vie"},
+                {simbolo: "s", ejemplo: "sac", palabra: "sac"},
+                {simbolo: "z", ejemplo: "zoo", palabra: "zoo"},
+                {simbolo: "ʃ", ejemplo: "chat", palabra: "chat"},
+                {simbolo: "ʒ", ejemplo: "je", palabra: "je"},
+                {simbolo: "m", ejemplo: "maman", palabra: "maman"},
+                {simbolo: "n", ejemplo: "non", palabra: "non"},
+                {simbolo: "ɲ", ejemplo: "agneau", palabra: "agneau"},
+                {simbolo: "l", ejemplo: "lune", palabra: "lune"},
+                {simbolo: "ʁ", ejemplo: "rouge", palabra: "rouge"},
+                {simbolo: "w", ejemplo: "oui", palabra: "oui"},
+                {simbolo: "ɥ", ejemplo: "lui", palabra: "lui"},
+                {simbolo: "j", ejemplo: "yeux", palabra: "yeux"},
+            ]
+        };
+
+        const fonemasItaliano = {
+            "Vocales": [
+                {simbolo: "a", ejemplo: "casa", palabra: "casa"},
+                {simbolo: "e", ejemplo: "e", palabra: "e"},
+                {simbolo: "ɛ", ejemplo: "bello", palabra: "bello"},
+                {simbolo: "i", ejemplo: "vino", palabra: "vino"},
+                {simbolo: "o", ejemplo: "nome", palabra: "nome"},
+                {simbolo: "ɔ", ejemplo: "cosa", palabra: "cosa"},
+                {simbolo: "u", ejemplo: "uno", palabra: "uno"},
+            ],
+            "Consonantes": [
+                {simbolo: "p", ejemplo: "pasta", palabra: "pasta"},
+                {simbolo: "b", ejemplo: "bene", palabra: "bene"},
+                {simbolo: "t", ejemplo: "tempo", palabra: "tempo"},
+                {simbolo: "d", ejemplo: "dove", palabra: "dove"},
+                {simbolo: "k", ejemplo: "casa", palabra: "casa"},
+                {simbolo: "g", ejemplo: "gatto", palabra: "gatto"},
+                {simbolo: "f", ejemplo: "fame", palabra: "fame"},
+                {simbolo: "v", ejemplo: "vino", palabra: "vino"},
+                {simbolo: "s", ejemplo: "sole", palabra: "sole"},
+                {simbolo: "z", ejemplo: "zero", palabra: "zero"},
+                {simbolo: "ʃ", ejemplo: "pesce", palabra: "pesce"},
+                {simbolo: "dʒ", ejemplo: "giorno", palabra: "giorno"},
+                {simbolo: "tʃ", ejemplo: "ciao", palabra: "ciao"},
+                {simbolo: "m", ejemplo: "mamma", palabra: "mamma"},
+                {simbolo: "n", ejemplo: "notte", palabra: "notte"},
+                {simbolo: "ɲ", ejemplo: "gnocchi", palabra: "gnocchi"},
+                {simbolo: "l", ejemplo: "latte", palabra: "latte"},
+                {simbolo: "ʎ", ejemplo: "figlio", palabra: "figlio"},
+                {simbolo: "r", ejemplo: "rosso", palabra: "rosso"},
+                {simbolo: "w", ejemplo: "uomo", palabra: "uomo"},
+                {simbolo: "j", ejemplo: "ieri", palabra: "ieri"},
+            ]
+        };
 
         let currentLang = 'frances';
         let currentMode = 'tabla';
@@ -468,6 +615,34 @@
             document.getElementById('cardsView').innerHTML = html;
         }
 
+        function renderPhonemes() {
+            const fonemas = currentLang === 'frances' ? fonemasFrances : fonemasItaliano;
+            
+            let html = '';
+            for (const [categoria, items] of Object.entries(fonemas)) {
+                html += `
+                    <div class="phoneme-section">
+                        <h2>${categoria}</h2>
+                        <div class="phonemes-grid">
+                            ${items.map(fonema => `
+                                <div class="phoneme-card">
+                                    <div class="phoneme-symbol">/${fonema.simbolo}/</div>
+                                    <div class="phoneme-example">Ej: ${fonema.ejemplo}</div>
+                                    <div class="phoneme-audio">
+                                        <button class="audio-btn" onclick="playAudio('${fonema.palabra}')">
+                                            🔊
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('phonemesView').innerHTML = html;
+        }
+
         function toggleCard(num) {
             if (flippedCards.has(num)) {
                 flippedCards.delete(num);
@@ -480,6 +655,20 @@
         function render() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             let data = getData();
+            
+            if (currentLang === 'fonemas') {
+                document.getElementById('tableView').classList.add('hidden');
+                document.getElementById('cardsView').classList.add('hidden');
+                document.getElementById('phonemesView').classList.remove('hidden');
+                document.getElementById('searchContainer').classList.add('hidden');
+                document.getElementById('modeContainer').classList.add('hidden');
+                renderPhonemes();
+                return;
+            }
+            
+            document.getElementById('searchContainer').classList.remove('hidden');
+            document.getElementById('modeContainer').classList.remove('hidden');
+            document.getElementById('phonemesView').classList.add('hidden');
             
             if (searchTerm) {
                 data = data.filter(item =>
