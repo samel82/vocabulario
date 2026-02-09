@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulario Interactivo - Francés & Italiano</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FFF5E4 0%, #FFE5D4 100%);
+            color: #1A1A2E;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            font-weight: 900;
+            color: #FF6B35;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: #FFF5E4;
+            color: #1A1A2E;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,53,0.3);
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #FFF5E4;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #00A8E8;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #00A8E8;
+            background: transparent;
+            color: #00A8E8;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #00A8E8;
+            color: white;
+        }
+
+        /* Modo Tabla */
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            color: white;
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+        }
+
+        tbody tr {
+            transition: all 0.3s;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #FFF5E4;
+        }
+
+        tbody tr:hover {
+            background: #FFE5D4;
+            transform: scale(1.01);
+        }
+
+        td {
+            padding: 15px 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .word-cell {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #FF6B35;
+        }
+
+        .audio-btn {
+            background: #00A8E8;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .audio-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Modo Tarjetas */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card.flipped {
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            color: white;
+        }
+
+        .card-number {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #FFF5E4;
+            color: #1A1A2E;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .card.flipped .card-number {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .card-word {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #FF6B35;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card.flipped .card-word {
+            color: white;
+        }
+
+        .card-pronunciation {
+            font-size: 1.1rem;
+            color: #F7931E;
+            margin-bottom: 10px;
+        }
+
+        .card.flipped .card-pronunciation {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .card-translation {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #FFF5E4;
+            border-radius: 10px;
+            border-left: 4px solid #00A8E8;
+        }
+
+        .card.flipped .card-translation {
+            background: rgba(255,255,255,0.15);
+            border-left-color: white;
+            color: white;
+        }
+
+        .card-mnemonic {
+            font-style: italic;
+            line-height: 1.6;
+            padding: 15px;
+            background: #FFF9F0;
+            border-radius: 10px;
+            border: 2px dashed #F7931E;
+        }
+
+        .card.flipped .card-mnemonic {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 10px 5px;
+            }
+            
+            .word-cell {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1>🎓 Vocabulario Interactivo</h1>
+            <p>Aprende Francés e Italiano con Audio</p>
+        </header>
+
+        <div class="controls">
+            <div class="tabs">
+                <button class="tab-btn active" data-lang="frances">🇫🇷 Francés</button>
+                <button class="tab-btn" data-lang="italiano">🇮🇹 Italiano</button>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar palabra o traducción...">
+            </div>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="tabla">📋 Tabla</button>
+                <button class="mode-btn" data-mode="tarjetas">🃏 Tarjetas</button>
+            </div>
+        </div>
+
+        <div id="tableView" class="table-container"></div>
+        <div id="cardsView" class="cards-container hidden"></div>
+    </div>
+
+    <script>
+        const vocabularioFrances = [
+            {num: 1, palabra: "le", pronunciacion: "lə", traduccion: "el", mnemotecnica: "El león LE lamió la lengua a su domador"},
+            {num: 2, palabra: "de", pronunciacion: "də", traduccion: "de", mnemotecnica: "DEbe DEjar DE comer dulces"},
+            {num: 3, palabra: "un", pronunciacion: "œ̃", traduccion: "un", mnemotecnica: "UN ungüento en la uña del unicornio"},
+            {num: 4, palabra: "être", pronunciacion: "ɛtʁ", traduccion: "ser/estar", mnemotecnica: "Ser un ETRusco es ESTAR en la antigua Etruria"},
+            {num: 5, palabra: "et", pronunciacion: "e", traduccion: "y", mnemotecnica: "Y el ET extraterrestre come caramelos"},
+            {num: 6, palabra: "à", pronunciacion: "a", traduccion: "a", mnemotecnica: "A Anna le gusta ir A la playa"},
+            {num: 7, palabra: "il", pronunciacion: "il", traduccion: "él", mnemotecnica: "ÉL ILumina la habitación con velas"},
+            {num: 8, palabra: "avoir", pronunciacion: "avwaʁ", traduccion: "tener", mnemotecnica: "Tener un AVIÓN es VOLAR alto en el cielo"},
+            {num: 9, palabra: "ne", pronunciacion: "nə", traduccion: "no", mnemotecnica: "NO al NEgocio de vender nubes"},
+            {num: 10, palabra: "je", pronunciacion: "ʒə", traduccion: "yo", mnemotecnica: "YO soy el JEFE de mi propio destino"},
+            {num: 11, palabra: "son", pronunciacion: "sɔ̃", traduccion: "su", mnemotecnica: "SU hijo toca el SON del tambor africano"},
+            {num: 12, palabra: "que", pronunciacion: "kə", traduccion: "que", mnemotecnica: "¿QUÉ queso tan QUEmado huele tan mal?"},
+            {num: 13, palabra: "se", pronunciacion: "sə", traduccion: "se", mnemotecnica: "SE sentó en la SETA gigante del bosque"},
+            {num: 14, palabra: "qui", pronunciacion: "ki", traduccion: "quien", mnemotecnica: "¿QUIÉN le dio el KILO de queso?"},
+            {num: 15, palabra: "ce", pronunciacion: "sə", traduccion: "este", mnemotecnica: "ESTE CErveza está en el CEsto"},
+            {num: 16, palabra: "dans", pronunciacion: "dɑ̃", traduccion: "en", mnemotecnica: "EN la DANZa todos bailan EN círculo"},
+            {num: 17, palabra: "en", pronunciacion: "ɑ̃", traduccion: "en", mnemotecnica: "EN el AÑO nuevo todos brindan"},
+            {num: 18, palabra: "du", pronunciacion: "dy", traduccion: "del", mnemotecnica: "DEL DÚO de cantantes famosos"},
+            {num: 19, palabra: "elle", pronunciacion: "ɛl", traduccion: "ella", mnemotecnica: "ELLA tiene un ELEfante de mascota"},
+            {num: 20, palabra: "au", pronunciacion: "o", traduccion: "al", mnemotecnica: "AL AUlla el lobo bajo la luna llena"},
+            {num: 21, palabra: "pour", pronunciacion: "puʁ", traduccion: "para", mnemotecnica: "PARA el PObre URgía dinero urgente"},
+            {num: 22, palabra: "pas", pronunciacion: "pa", traduccion: "no", mnemotecnica: "NO PASes por ese camino peligroso"},
+            {num: 23, palabra: "vous", pronunciacion: "vu", traduccion: "usted", mnemotecnica: "USTED VIO una VUlva en el museo de arte"},
+            {num: 24, palabra: "par", pronunciacion: "paʁ", traduccion: "por", mnemotecnica: "POR el PARque corre un PARasaurio"},
+            {num: 25, palabra: "sur", pronunciacion: "syʁ", traduccion: "sobre", mnemotecnica: "SOBRE el mURo SURge un girasol gigante"},
+            {num: 26, palabra: "faire", pronunciacion: "fɛʁ", traduccion: "hacer", mnemotecnica: "HACER una FERia es construir con HIERRO"},
+            {num: 27, palabra: "plus", pronunciacion: "plys", traduccion: "más", mnemotecnica: "MÁS PLUSvalía en el negocio de plumas"},
+            {num: 28, palabra: "dire", pronunciacion: "diʁ", traduccion: "decir", mnemotecnica: "DECIR DIREcto lo que piensas es valiente"},
+            {num: 29, palabra: "me", pronunciacion: "mə", traduccion: "me", mnemotecnica: "ME MEte miedo la medusa gigante"},
+            {num: 30, palabra: "on", pronunciacion: "ɔ̃", traduccion: "uno/se", mnemotecnica: "UNO ONdula como serpiente al bailar"},
+        ];
+
+        const vocabularioItaliano = [
+            {num: 1, palabra: "il", pronunciacion: "il", traduccion: "el", mnemotecnica: "EL ILuminado monje brilla en la oscuridad"},
+            {num: 2, palabra: "di", pronunciacion: "di", traduccion: "de", mnemotecnica: "DE DIos viene la bendición divina"},
+            {num: 3, palabra: "e", pronunciacion: "e", traduccion: "y", mnemotecnica: "Y la letra E forma palabras"},
+            {num: 4, palabra: "la", pronunciacion: "la", traduccion: "la", mnemotecnica: "LA lámpara LA ilumina todo oscuro"},
+            {num: 5, palabra: "che", pronunciacion: "ke", traduccion: "que", mnemotecnica: "QUE CHEqueo tan extraño del médico"},
+            {num: 6, palabra: "è", pronunciacion: "ɛ", traduccion: "es/está", mnemotecnica: "ES Éste el momento de brillar"},
+            {num: 7, palabra: "un", pronunciacion: "un", traduccion: "un", mnemotecnica: "UN UNgüento mágico cura todo"},
+            {num: 8, palabra: "a", pronunciacion: "a", traduccion: "a", mnemotecnica: "A Ana le gusta la pizza italiana"},
+            {num: 9, palabra: "in", pronunciacion: "in", traduccion: "en", mnemotecnica: "EN el INfierno hace mucho calor"},
+            {num: 10, palabra: "per", pronunciacion: "per", traduccion: "para", mnemotecnica: "PARA el PERro hay comida especial"},
+            {num: 11, palabra: "non", pronunciacion: "non", traduccion: "no", mnemotecnica: "NO es NON sense lo que digo"},
+            {num: 12, palabra: "una", pronunciacion: "una", traduccion: "una", mnemotecnica: "UNA luna brillante UNe corazones"},
+            {num: 13, palabra: "si", pronunciacion: "si", traduccion: "sí/se", mnemotecnica: "SÍ, SE sienta en la silla roja"},
+            {num: 14, palabra: "come", pronunciacion: "kome", traduccion: "como", mnemotecnica: "COMO COMEr pasta todos los días"},
+            {num: 15, palabra: "io", pronunciacion: "io", traduccion: "yo", mnemotecnica: "YO voy solo al río frío"},
+            {num: 16, palabra: "ma", pronunciacion: "ma", traduccion: "pero", mnemotecnica: "PERO MAma cocina pizza rica"},
+            {num: 17, palabra: "con", pronunciacion: "kon", traduccion: "con", mnemotecnica: "CON el CONo del helado derretido"},
+            {num: 18, palabra: "sono", pronunciacion: "sono", traduccion: "soy/son", mnemotecnica: "SOY un SONámbulo que camina dormido"},
+            {num: 19, palabra: "mi", pronunciacion: "mi", traduccion: "me", mnemotecnica: "ME da MIedo la montaña alta"},
+            {num: 20, palabra: "da", pronunciacion: "da", traduccion: "de/desde", mnemotecnica: "DESDE que DA la una viene"},
+            {num: 21, palabra: "più", pronunciacion: "pju", traduccion: "más", mnemotecnica: "MÁS PIUmaje tiene el pájaro exótico"},
+            {num: 22, palabra: "lo", pronunciacion: "lo", traduccion: "lo", mnemotecnica: "LO LOco baila desnudo en la plaza"},
+            {num: 23, palabra: "questo", pronunciacion: "kʷesto", traduccion: "este", mnemotecnica: "ESTE QUESo apesta horriblemente mal"},
+            {num: 24, palabra: "ha", pronunciacion: "a", traduccion: "ha/tiene", mnemotecnica: "HA caído en el agujero profundo"},
+            {num: 25, palabra: "ti", pronunciacion: "ti", traduccion: "te", mnemotecnica: "TE toca el TIgrillo en el bosque"},
+            {num: 26, palabra: "se", pronunciacion: "se", traduccion: "si", mnemotecnica: "SI SE cae del árbol se rompe"},
+            {num: 27, palabra: "anche", pronunciacion: "aŋke", traduccion: "también", mnemotecnica: "TAMBIÉN el ANcho come mucho pan"},
+            {num: 28, palabra: "tu", pronunciacion: "tu", traduccion: "tú", mnemotecnica: "TÚ TUviste un sueño extraño anoche"},
+            {num: 29, palabra: "su", pronunciacion: "su", traduccion: "sobre", mnemotecnica: "SOBRE el SUelo hay sangre roja"},
+            {num: 30, palabra: "ci", pronunciacion: "tʃi", traduccion: "nos/ahí", mnemotecnica: "AHÍ nos vemos en la CHImenea"},
+        ];
+
+        let currentLang = 'frances';
+        let currentMode = 'tabla';
+        let flippedCards = new Set();
+
+        function getData() {
+            return currentLang === 'frances' ? vocabularioFrances : vocabularioItaliano;
+        }
+
+        function getLang() {
+            return currentLang === 'frances' ? 'fr-FR' : 'it-IT';
+        }
+
+        function playAudio(palabra) {
+            const utterance = new SpeechSynthesisUtterance(palabra);
+            utterance.lang = getLang();
+            utterance.rate = 0.8;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        }
+
+        function renderTable(data) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>🔊</th>
+                            <th>Palabra</th>
+                            <th>Pronunciación</th>
+                            <th>Traducción</th>
+                            <th>Frase Mnemotécnica</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr>
+                                <td>${item.num}</td>
+                                <td>
+                                    <button class="audio-btn" onclick="playAudio('${item.palabra}')">🔊</button>
+                                </td>
+                                <td class="word-cell">${item.palabra}</td>
+                                <td>${item.pronunciacion}</td>
+                                <td><strong>${item.traduccion}</strong></td>
+                                <td style="font-style: italic;">${item.mnemotecnica}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tableView').innerHTML = html;
+        }
+
+        function renderCards(data) {
+            const html = data.map(item => `
+                <div class="card ${flippedCards.has(item.num) ? 'flipped' : ''}" 
+                     onclick="toggleCard(${item.num})" 
+                     style="position: relative;">
+                    <div class="card-number">${item.num}</div>
+                    <div class="card-word">
+                        ${item.palabra}
+                        <button class="audio-btn" onclick="event.stopPropagation(); playAudio('${item.palabra}')">🔊</button>
+                    </div>
+                    <div class="card-pronunciation">${item.pronunciacion}</div>
+                    <div class="card-translation">${item.traduccion}</div>
+                    <div class="card-mnemonic">💡 ${item.mnemotecnica}</div>
+                </div>
+            `).join('');
+            document.getElementById('cardsView').innerHTML = html;
+        }
+
+        function toggleCard(num) {
+            if (flippedCards.has(num)) {
+                flippedCards.delete(num);
+            } else {
+                flippedCards.add(num);
+            }
+            render();
+        }
+
+        function render() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let data = getData();
+            
+            if (searchTerm) {
+                data = data.filter(item =>
+                    item.palabra.toLowerCase().includes(searchTerm) ||
+                    item.traduccion.toLowerCase().includes(searchTerm) ||
+                    item.mnemotecnica.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            if (currentMode === 'tabla') {
+                document.getElementById('tableView').classList.remove('hidden');
+                document.getElementById('cardsView').classList.add('hidden');
+                renderTable(data);
+            } else {
+                document.getElementById('tableView').classList.add('hidden');
+                document.getElementById('cardsView').classList.remove('hidden');
+                renderCards(data);
+            }
+        }
+
+        // Event listeners
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentLang = this.dataset.lang;
+                flippedCards.clear();
+                render();
+            });
+        });
+
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+                render();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', render);
+
+        // Render inicial
+        render();
+    </script>
+</body>
+</html>
