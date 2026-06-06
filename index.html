@@ -691,8 +691,7 @@
             if (searchTerm) {
                 data = data.filter(item =>
                     item.palabra.toLowerCase().includes(searchTerm) ||
-                    item.traduccion.toLowerCase().includes(searchTerm) ||
-
+                    item.traduccion.toLowerCase().includes(searchTerm)
                 );
             }
 
